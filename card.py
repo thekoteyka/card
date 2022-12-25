@@ -78,6 +78,7 @@ def login():
                 f.write('')
             
         send_moneyBnt['state'] = NORMAL
+        lg.destroy()
 
     def authCode():
         global user_card, cardData
@@ -91,7 +92,7 @@ def login():
         global user_card, cardData
         for user in USERS:
             cardData = get_card(user)
-            if cardData['cardNumber'] == int(cardNumber.get()) and cardData['cvv'] == int(cvv.get()):
+            if cardData['cardNumber'] == int(cardNumber.get().replace(" ", "")) and cardData['cvv'] == int(cvv.get()):
                 _auth()
 
     Label(lg, text='Номер карты:').place(x=5, y=20)
@@ -130,7 +131,8 @@ def send_money():
     Entry(mney, textvariable=card_num_receiver).place(x=5, y=60)
     Label(mney, text='Перевести сумму:', bg=back, fg='blue', font='Arial 13').place(x=5, y=90)
     Entry(mney, textvariable=money_to_send).place(x=20, y=120)
-    Label(mney, text=f'Баланс: {money_now}', bg=back).place(x=180, y=120)
+    money_nowLbl = Label(mney, text=f'Баланс: {money_now}', bg=back)
+    money_nowLbl.place(x=180, y=120)
     
     b = Button(mney, text='Отправить', width=20)
     b.place(x=5, y=170)
@@ -141,6 +143,7 @@ def send_money():
     percent_sending_lbl.place(x=170, y=170)
 
     def send():
+        nonlocal b
         money_to_send_int = int(money_to_send.get())
         card_num_receiver_str = card_num_receiver.get().replace(" ", "")
         for user in USERS:
@@ -155,6 +158,8 @@ def send_money():
                 set_card(user_card, user_card['user'])
 
                 cardMoneyLbl.configure(text=new_money_user)
+                b['state'] = DISABLED
+                money_nowLbl.configure(text=f'Баланс: {new_money_user}')
 
     
     def update_clock(e=None):
@@ -180,6 +185,11 @@ def send_money():
     b.bind('<ButtonPress-1>', update_clock)
     b.bind('<ButtonRelease-1>', stop_clock)
 
+def fastLoginOff():
+    with open('fastLogin', 'w') as f:
+        f.write('')
+    fastLoginOffBtn['state'] = DISABLED
+
 root.eval('tk::PlaceWindow . center')
 
 Button(root, text='Войти', bg='gray30', command=login).place(x=5, y=170)
@@ -201,5 +211,7 @@ with open('fastLogin', 'rb') as f:
                 cardUserLbl.configure(text=user_card['user'])
 
                 send_moneyBnt['state'] = NORMAL
+        fastLoginOffBtn = Button(root, text='Выйти из FastLogin', command=fastLoginOff, bg='gray30')
+        fastLoginOffBtn.place(x=180, y=170)
 
 root.mainloop()
