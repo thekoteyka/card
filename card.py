@@ -45,6 +45,7 @@ print(get_card('dima'))
 user_card = None
 # ==========================================
 
+
 def login():
     lg = Tk()
     lg['bg'] = back
@@ -55,19 +56,28 @@ def login():
     cardNumber = StringVar(lg)
     cvv = StringVar(lg)
     secretCode = StringVar(lg)
+    stayLoginned = BooleanVar(lg)
 
 
     def _auth():
-        global user_card, cardData
-        print(cardData['cardNumber'])
+        global user_card, cardData, send_moneyBnt
         user_card = cardData
-        print(user_card)
-        cardMoneyLbl.configure(text=user_card['money'])
+
         card_num = str(user_card['cardNumber'])
         card_no_beautiful =  " ".join([card_num[::-1][i:i+4] for i in range(0, len(card_num), 4)])[::-1]
-        print(card_no_beautiful)
+
+        cardMoneyLbl.configure(text=user_card['money'])
         cardNomerLbl.configure(text=card_no_beautiful)
         cardUserLbl.configure(text=user_card['user'])
+
+        if stayLoginned.get():
+            print(1)
+            set_card(user_card['secretCode'], 'fastLogin')
+        else:
+            with open('fastLogin', 'w') as f:
+                f.write('')
+            
+        send_moneyBnt['state'] = NORMAL
 
     def authCode():
         global user_card, cardData
@@ -95,6 +105,8 @@ def login():
 
     Button(lg, text='Войти по коду', bg=back, width=20, command=authCode).place(x=60, y=160)
     Button(lg, text='Войти по номеру карты', bg=back, width=20, command=authNumberCard).place(x=140, y=50)
+
+    Checkbutton(lg, text="Оставаться в системе", bg=back, activebackground=back, variable=stayLoginned).place(x=5, y=105)
 
 
 def send_money():
@@ -171,6 +183,23 @@ def send_money():
 root.eval('tk::PlaceWindow . center')
 
 Button(root, text='Войти', bg='gray30', command=login).place(x=5, y=170)
-Button(root, text='Отправить деньги', bg='gray30', command=send_money).place(x=5, y=100)
+send_moneyBnt = Button(root, text='Отправить деньги', bg='gray30', command=send_money, state=DISABLED)
+send_moneyBnt.place(x=5, y=100)
+
+with open('fastLogin', 'rb') as f:
+    if f.read():
+        for user in USERS:
+            cardData = get_card(user)
+            if cardData['secretCode'] == int(get_card('fastLogin')):
+                user_card = cardData
+
+                card_num = str(user_card['cardNumber'])
+                card_no_beautiful =  " ".join([card_num[::-1][i:i+4] for i in range(0, len(card_num), 4)])[::-1]
+
+                cardMoneyLbl.configure(text=user_card['money'])
+                cardNomerLbl.configure(text=card_no_beautiful)
+                cardUserLbl.configure(text=user_card['user'])
+
+                send_moneyBnt['state'] = NORMAL
 
 root.mainloop()
