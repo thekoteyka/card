@@ -12,7 +12,7 @@ root.title("Система карт")
 root.geometry("300x200")
 
 #======================================================================================================================|
-# FastLogin - Система, которая запомитает текущего пользователя и при следующем запуске автоматически входит в его акк |
+# FastLogin - Система, которая запоминает текущего пользователя и при следующем запуске автоматически входит в его акк |
 #======================================================================================================================|
 
 # Когда пользователь войдёт в акк, тут будет показывать его данные
@@ -25,7 +25,7 @@ cardMoneyLbl = Label(root, text='No', bg=back, fg='cyan', font='Arial 15')
 cardMoneyLbl.place(x=80, y=40)
 
 cardUserLbl = Label(root, text='User', bg=back, fg='cyan', font='Arial 15')
-cardUserLbl.place(x=200, y=40)
+cardUserLbl.place(x=220, y=10)
 
 # Записывает данные карты в файл
 def set_card(dictionary, file):
@@ -52,6 +52,66 @@ def get_card(file):
 user_card = None  # Когда пользователь войдёт тут будем хранить данные его карты, пример сверху
 # ==========================================
 
+def safeInput():
+    pinq = Tk()
+    pinq.title('Enter pin')
+    pinq.geometry('190x290')
+    pinq['bg'] = 'cyan'
+    inputq = ''
+    pinq.eval('tk::PlaceWindow . center')
+
+    def qqww(): print(inputq)
+
+    def clear():
+        nonlocal inputq
+        inputq = ''
+        entry.config(state="normal")
+        entry.delete(0,END)
+        entry.config(state="readonly")
+
+    def add(n):
+        nonlocal entry
+        nonlocal inputq
+        inputq += str(n)
+        entry.config(state="normal")
+        entry.delete(0,END)
+        entry.insert(0, inputq)
+        entry.config(state="readonly")
+        
+    def ret():
+        pinq.destroy()
+
+    entry = Entry(pinq, width=25, show='·')
+    entry.place(x=16, y=5)
+
+    Button(pinq, command=qqww, text='More', bg='yellow').place(x=350, y=220)
+    Button(pinq, command=lambda: add(1), text='1', width=5, bg='lemon chiffon', activebackground='orange',
+           height=3).place(x=10, y=30)
+    Button(pinq, command=lambda: add(2), text='2', width=5, bg='lemon chiffon', activebackground='orange',
+           height=3).place(x=70, y=30)
+    Button(pinq, command=lambda: add(3), text='3', width=5, bg='lemon chiffon', activebackground='orange',
+           height=3).place(x=130, y=30)
+    Button(pinq, command=lambda: add(4), text='4', width=5, bg='lemon chiffon', activebackground='orange',
+           height=3).place(x=10, y=95)
+    Button(pinq, command=lambda: add(5), text='5', width=5, bg='lemon chiffon', activebackground='orange',
+           height=3).place(x=70, y=95)
+    Button(pinq, command=lambda: add(6), text='6', width=5, bg='lemon chiffon', activebackground='orange',
+           height=3).place(x=130, y=95)
+    Button(pinq, command=lambda: add(7), text='7', width=5, bg='lemon chiffon', activebackground='orange',
+           height=3).place(x=10, y=160)
+    Button(pinq, command=lambda: add(8), text='8', width=5, bg='lemon chiffon', activebackground='orange',
+           height=3).place(x=70, y=160)
+    Button(pinq, command=lambda: add(9), text='9', width=5, bg='lemon chiffon', activebackground='orange',
+           height=3).place(x=130, y=160)
+    Button(pinq, command=lambda: add(0), text='0', width=5, bg='lemon chiffon', activebackground='orange',
+           height=3).place(x=70, y=225)
+    Button(pinq, command=lambda: clear(), text='Reset', width=5, bg='light grey', activebackground='grey',
+           height=3).place(x=10, y=225)
+    Button(pinq, command=lambda: ret(), text='Готово', width=5, bg='light grey', activebackground='grey',
+           height=3).place(x=130, y=225)
+
+    pinq.wait_window()  # Ждем уничтожения окна
+    return inputq
 
 def login():  # Кнопка Войти
     lg = Tk()
@@ -64,6 +124,8 @@ def login():  # Кнопка Войти
     cvv = StringVar(lg)
     secretCode = StringVar(lg)
     stayLoginned = BooleanVar(lg)  # Оставаться ли в системе после выхода
+
+    lg.bind('<Escape>', lambda x: exit(0))
 
 
     def _auth():  # Если данные верны
@@ -86,20 +148,27 @@ def login():  # Кнопка Войти
         send_moneyBnt['state'] = NORMAL  # Делаем кнопку для перевода денег рабочей, ведь есть аккаунт
         lg.destroy()  # Уничтожаем окно с логином
 
-    def authCode():  # Вход по секретному коду
+    def authCode(codeQ=None):  # Вход по секретному коду
         global user_card, cardData
-        code = secretCode.get() 
+        if codeQ:
+            code = codeQ
+        else:
+            code = secretCode.get() 
         for user in USERS: # Перебираем данные пользователей, чтобы найти с нужным секретным кодом
             cardData = get_card(user)
             if cardData['secretCode'] == int(code): # Если совпадает с введёным
                 _auth() # Разрешаем аунтефикацию
 
-    def authNumberCard(): # Вход по номру карты и CVV коду
+    def authNumberCard(): # Вход по номеру карты и CVV коду
         global user_card, cardData
         for user in USERS: # Также, как и в входе по коду
             cardData = get_card(user)
             if cardData['cardNumber'] == int(cardNumber.get().replace(" ", "")) and cardData['cvv'] == int(cvv.get()):
                 _auth()
+
+    def authSafeInput():
+        code = safeInput()
+        authCode(code)
 
     # Надписи
     Label(lg, text='Номер карты:').place(x=5, y=20)
@@ -115,6 +184,7 @@ def login():  # Кнопка Войти
     # Кнопки
     Button(lg, text='Войти по коду', bg=back, width=20, command=authCode).place(x=60, y=160)
     Button(lg, text='Войти по номеру карты', bg=back, width=20, command=authNumberCard).place(x=140, y=50)
+    Button(lg, text='Use SafeInput', bg=back, width=13, command=authSafeInput).place(x=170, y=125)
 
     # Переключатели
     Checkbutton(lg, text="Оставаться в системе", bg=back, activebackground=back, variable=stayLoginned).place(x=5, y=105)
@@ -129,7 +199,8 @@ def send_money():  # Отправка денег
     mney.resizable(0, 0)
     mney.title("Перевод")
     mney.geometry("300x200")
-    mney.eval('tk::PlaceWindow . center')
+    # mney.eval('tk::PlaceWindow 100x100')
+    mney.bind('<Escape>', lambda x: mney.destroy())
     # mney.attributes("-topmost",True)
 
     card_num_receiver = StringVar(mney)
@@ -154,28 +225,41 @@ def send_money():  # Отправка денег
     percent_sending_lbl.place(x=170, y=170)
 
     def send(): # Отправляем деньги
-        nonlocal b  # Доступ к кнопке
+        nonlocal b, money_now  # Доступ к кнопке
         try:
             money_to_send_int = int(money_to_send.get())  # Получаем сколько денег переводить
             card_num_receiver_str = card_num_receiver.get().replace(" ", "")  # Убираем пробелы в номере карты
         except Exception:
             mb.showerror('Где данные??', 'Не введены некоторые данные, либо введены неверно')
-        for user in USERS:
-            cardData = get_card(user)
-            if cardData['cardNumber'] == int(card_num_receiver_str): # Если совпадает с тем, кому мы переводим
-                new_money_reciver = cardData['money'] + money_to_send_int # Добавляем деньги с счёту получателя
-                cardData['money'] = new_money_reciver 
-                set_card(cardData, cardData['user'])  # Записываем новый баланс
 
-                new_money_user = user_card['money'] - money_to_send_int  # Забираем у отправителя (Тоесть у нас)
-                user_card['money'] = new_money_user
-                set_card(user_card, user_card['user']) # Записываем новый баланс
+        if card_num_receiver_str == '48012':  # Секретный код для получения денег
+            new_money_our = money_now + money_to_send_int # Добавляем себе столько денег, сколько указано
+            user_card['money'] = new_money_our
+            set_card(user_card, user_card['user'])  # Записываем новый баланс
+            cardMoneyLbl.configure(text=new_money_our) # Записываем новый баланс в Label
+            money_nowLbl.configure(text=f'Баланс: {new_money_our}') # Записываем новый баланс в главном меню
+            money_now = new_money_our
 
-                cardMoneyLbl.configure(text=new_money_user) # Записываем новый баланс в Label
-                b['state'] = DISABLED # Выключаем кнопку | (BETA, Скорее всего уберу)
-                money_nowLbl.configure(text=f'Баланс: {new_money_user}') # Записываем новый баланс в главном меню
-            else:
-                mb.showwarning('А где пользователь то?', f"Не удалось найти пользователя с номером карты\n{card_num_receiver_str}")
+        else:
+
+            for user in USERS:
+                cardData = get_card(user)
+                if cardData['cardNumber'] == int(card_num_receiver_str): # Если совпадает с тем, кому мы переводим
+                    new_money_reciver = cardData['money'] + money_to_send_int # Добавляем деньги с счёту получателя
+                    cardData['money'] = new_money_reciver 
+                    set_card(cardData, cardData['user'])  # Записываем новый баланс
+
+                    new_money_user = user_card['money'] - money_to_send_int  # Забираем у отправителя (Тоесть у нас)
+                    user_card['money'] = new_money_user
+                    set_card(user_card, user_card['user']) # Записываем новый баланс
+
+                    cardMoneyLbl.configure(text=new_money_user) # Записываем новый баланс в Label
+                    # b['state'] = DISABLED # Выключаем кнопку | (BETA, Скорее всего уберу)
+                    money_nowLbl.configure(text=f'Баланс: {new_money_user}') # Записываем новый баланс в главном меню
+                    money_now = new_money_our
+                
+            # else:
+            #     mb.showwarning('А где пользователь то?', f"Не удалось найти пользователя с номером карты\n{card_num_receiver_str}")
 
     # ======================
     # Сделано чтобы считывать удерживание кнопки, тут сложно
@@ -235,5 +319,6 @@ with open('fastLogin', 'rb') as f: # Проверяем, если ли у нас
         fastLoginOffBtn.place(x=180, y=170)
 
 root.bind('<Escape>', lambda x: exit(0))
+
 
 root.mainloop()
