@@ -199,7 +199,7 @@ def send_money():  # Отправка денег
     mney.resizable(0, 0)
     mney.title("Перевод")
     mney.geometry("300x200")
-    # mney.eval('tk::PlaceWindow 100x100')
+    mney.eval('tk::PlaceWindow .')
     mney.bind('<Escape>', lambda x: mney.destroy())
     # mney.attributes("-topmost",True)
 
